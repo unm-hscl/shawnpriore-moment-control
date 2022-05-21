@@ -21,7 +21,7 @@ quiet = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % solve with our method
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-solve_our_method_2; 
+solve_our_method; 
 if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
     return
 end

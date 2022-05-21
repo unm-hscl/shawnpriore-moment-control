@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % disturbance set up
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-hat_alpha = 2/240;
-hat_lam = sqrt((1-hat_alpha)/hat_alpha);
+hat_alpha = alpha_r/24;
+hat_lam = 2/(3*sqrt(hat_alpha));
 
 scaled_sigma_vec = sqrt(diag(target_set_A * Wd_concat(end-3:end,:) * sigma_concat * Wd_concat(end-3:end,:)' * target_set_A'));
 
@@ -17,62 +17,6 @@ for i=1:time_horizon
     
     expect_norm_add(i) = 2 * trace( var_mat_A(:,:,i) );
     var_norm_add(i) = 8 * trace( var_mat_A(:,:,i)^2 );
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cauchy approx
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-by = 1e-4;
-range = 2:by:40;
-max_overapprox = 1e-2;
-
-cauchy = @(x) 1./(1+x.^2);
-
-eval_cauchy = cauchy(range);
-
-cauchy_m = [];
-cauchy_c = [];
-
-index = size(range,2);
-current_index = 1;
-last_index = size(range,2);
-   
-while current_index < last_index
-    continue_trigger = 0;
-    m = (eval_cauchy(index) - eval_cauchy(current_index)) / ((index - current_index)*by);
-    c = eval_cauchy(current_index) - range(current_index) * m;
-
-    if index == current_index+1
-        cauchy_m = [cauchy_m; m];
-        cauchy_c = [cauchy_c; c]; 
-        if index ~= last_index
-            current_index = index;
-            index = last_index;
-            continue
-        else
-            break
-        end
-    end
-
-    for i = (current_index+1):(index-1)
-        x_est = m * range(i) + c;
-        x_error = abs(eval_cauchy(i) - x_est);
-        if (x_error > max_overapprox)
-            index = index - 1;
-            continue_trigger = 1;
-            break
-        end
-    end
-
-    if continue_trigger == 1
-        continue
-    end
-
-    cauchy_m = [cauchy_m; m];
-    cauchy_c = [cauchy_c; c];
-    current_index = index;
-    index = last_index;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -200,7 +144,7 @@ while iter <= iter_max
             
             for i = 1:(n_lin_state)
                 for j = 1:3
-                    lambda_temp(i,j) >= cauchy_m.*lambda(i,j) + cauchy_c;
+                    lambda_temp(i,j) >= 4/9*pow_p(lambda(i,j),-2);
                 end
             end
             sum(vec(lambda_temp)) <= alpha_t;
