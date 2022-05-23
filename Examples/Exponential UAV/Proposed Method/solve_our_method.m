@@ -16,7 +16,7 @@ for i=1:time_horizon
     var_mat_A(:,:,i) = S * D_k * sigma_concat * D_k' * S';
     
     expect_norm_add(i) = 2 * trace( var_mat_A(:,:,i) );
-    var_norm_add(i) = 8 * trace( var_mat_A(:,:,i)^2 );
+    var_norm_add(i) = 8 * trace( var_mat_A(:,:,i)^2 ) + 12 * diag(var_mat_A(:,:,i))'*diag(var_mat_A(:,:,i));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -138,7 +138,7 @@ while iter <= iter_max
             for i = 1:3
                 
                 % mean in shrunk target set
-                target_set_A * x_mean_our_method(end-3:end, i) + scaled_sigma_vec .* lambda(:,i) - target_set_B(:,i) <= 0;
+                target_set_A * (x_mean_our_method(end-3:end, i) + Wd_concat(end-3:end,:)*mu_concat) + scaled_sigma_vec .* lambda(:,i) - target_set_B(:,i) <= 0;
             end     
             
             for i = 1:(n_lin_state)
@@ -211,4 +211,4 @@ end
 % verify probabilities
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[P_target_our_method, P_mav_our_method, P_uav_our_method] = verify(x_mean_our_method, x_mav_mean, Wd_concat, sigma_concat, time_horizon, target_sets, r, 10000)
+[P_target_our_method, P_mav_our_method, P_uav_our_method] = verify(x_mean_our_method, x_mav_mean, Wd_concat, mu_concat, time_horizon, target_sets, r, 10000)

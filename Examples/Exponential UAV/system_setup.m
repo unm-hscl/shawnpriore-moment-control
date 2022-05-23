@@ -80,16 +80,17 @@ alpha_o = 0.15;
 alpha_r = 0.15;
 
 % disturbance covariance matrix
-sigma = diag([0.25, 0.25, 1e-4, 1e-4]);
-sigma_concat = kron(eye(time_horizon),sigma);
+mu = [0.5, 0.5, 1e-2, 1e-2]';
+mu_concat = kron(ones(time_horizon,1),mu);
+sigma_concat = diag(diag(mu_concat*mu_concat'));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % misc set up
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Set defaults for cvx
-% cvx_solver gurobi
-cvx_precision default
+cvx_solver gurobi
+cvx_precision high
 
 % iterations for our method and quantile
 iter_max = 100;
@@ -100,7 +101,7 @@ epsilon_lambda = 1e-8; % convergence of sum of slack variables to zero
 
 % cost of slack variable
 tau_max = 1e6;
-tau_mult = 2;
+tau_mult = 5;
 tau = min(tau_max * ones(iter_max,1),  tau_mult.^(0:(iter_max-1))');
 
 
