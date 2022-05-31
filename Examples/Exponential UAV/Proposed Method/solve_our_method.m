@@ -16,7 +16,7 @@ for i=1:time_horizon
     var_mat_A(:,:,i) = S * D_k * sigma_concat * D_k' * S';
     
     expect_norm_add(i) = 2 * trace( var_mat_A(:,:,i) );
-    var_norm_add(i) = 8 * trace( var_mat_A(:,:,i)^2 ) + 12 * diag(var_mat_A(:,:,i))'*diag(var_mat_A(:,:,i));
+    var_norm_add(i) = 16 * trace( var_mat_A(:,:,i)^2 ) + 4 * diag(var_mat_A(:,:,i))'*diag(var_mat_A(:,:,i));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%

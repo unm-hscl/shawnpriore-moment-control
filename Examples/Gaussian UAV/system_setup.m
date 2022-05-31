@@ -88,7 +88,7 @@ sigma_concat = kron(eye(time_horizon),sigma);
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Set defaults for cvx
-% cvx_solver gurobi
+cvx_solver gurobi
 cvx_precision default
 
 % iterations for our method and quantile
