@@ -15,7 +15,7 @@ addpath(genpath(pwd));
 system_setup;
 
 % output
-quiet = 0;
+quiet = 1;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -35,9 +35,9 @@ if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-% solve with pc
+% solve with dcp
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-solve_pc; 
+solve_dcp; 
 if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
     return
 end

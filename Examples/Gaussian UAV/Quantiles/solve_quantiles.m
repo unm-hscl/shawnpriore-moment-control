@@ -6,31 +6,22 @@ for i = 1:time_horizon
 end
 
 % disturbance  linearization
-%set up
-syms x gauss_pdf(x) chi_pdf(x, k);
 
 by = 5e-6; % step size
 approx_to = 0.995;
 approx_from = .5;
-tolerance = 1e-2;
+tolerance = 1e-4;
 linearize_from = 1-max(alpha_r,alpha_o);
 
 lb_approx = 1 - approx_to;
 ub_approx = 1 - linearize_from;
 
 % normal dist
-gauss_init = 0; % known quantile at p=0.5
-gauss_pdf(x) = exp(-x^2/2)/sqrt(2*pi);
-[gauss_invcdf_m, gauss_invcdf_c] = quantile_approx(1, by, approx_to, approx_from, gauss_init, gauss_pdf, tolerance, linearize_from);
-
+[gauss_invcdf_m, gauss_invcdf_c] = quantile_affine(1, by, approx_to, approx_from, @norminv, tolerance, linearize_from);
 
 % chi setup
-chi_med_approx = @(k) sqrt(k*(1-2/(9*k))^3);
-chi_pdf(x, k) =  x^(k-1)*exp(-x^2/2)/(2^(k/2-1)*gamma(k/2));
-
-% beta prime dist collision avoid with chief
 k = 2;
-[chi_invcdf_m, chi_invcdf_c] = quantile_approx(1, by, approx_to, approx_from, chi_med_approx(k), chi_pdf(x, k), tolerance, linearize_from);
+[chi_invcdf_m, chi_invcdf_c] = quantile_affine(1, by, approx_to, approx_from, @(x)chi2inv(x,k), tolerance, linearize_from);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
