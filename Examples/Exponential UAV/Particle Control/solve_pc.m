@@ -10,17 +10,12 @@ large_constant = 5000;
 N = 10;
 
 % polytoupe defining ||x_i|| = r
-% Avoid_A = [  eye(2);
-%             -eye(2);
-%             1,1;
-%             1,-1;
-%             -1,1;
-%             -1,-1];
-% Avoid_b = [r * ones(4,1); r * sqrt(2) * ones(4,1)];
-
-Avoid_A = [  eye(2);
-            -eye(2)];
-Avoid_b = r * ones(4,1);
+coll_avoid_n = 4;
+Avoid_A = zeros(coll_avoid_n,2);
+for i = 0:(coll_avoid_n-1)
+    Avoid_A(i+1,:) = [cos(2*i*pi/coll_avoid_n), sin(2*i*pi/coll_avoid_n)];
+end
+Avoid_b = r * ones(coll_avoid_n,1);
 
 % randomly generate the disturbance vector from the multivariate t.
 W_uav = zeros([size(sigma_concat,1), N, 3]);
@@ -36,7 +31,7 @@ W_mav =  exprnd(repmat(mu_concat,1,N));
 % time horizon T.
 
 tic;
-cvx_begin 
+cvx_begin quiet
     variable U_pc(2 * time_horizon,3);
     variable x_mean_pc(4 * time_horizon, 3);
     % incorporate disturbances 

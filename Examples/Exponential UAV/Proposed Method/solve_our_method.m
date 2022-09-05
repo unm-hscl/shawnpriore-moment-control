@@ -9,6 +9,7 @@ scaled_sigma_vec = sqrt(diag(target_set_A * Wd_concat(end-3:end,:) * sigma_conca
 expect_norm_add = zeros(time_horizon,1);
 var_norm_add = zeros(time_horizon,1);
 var_mat_A = zeros([size(S*S'), time_horizon]);
+chol_holder_k = zeros(3,3,time_horizon);
 
 for i=1:time_horizon
     D_k = Wd_concat(4*(i-1)+[1:4],:);
@@ -17,6 +18,7 @@ for i=1:time_horizon
     
     expect_norm_add(i) = 2 * trace( var_mat_A(:,:,i) );
     var_norm_add(i) = 16 * trace( var_mat_A(:,:,i)^2 ) + 4 * diag(var_mat_A(:,:,i))'*diag(var_mat_A(:,:,i));
+    chol_holder_k(:,:,i) = chol(blkdiag(8*var_mat_A(:,:,i), var_norm_add(i)));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,6 +41,11 @@ norm_approx_gradient_uav = zeros(time_horizon, 2*size(Bd_concat,2), 3);
 norm_approx_mav = zeros(time_horizon, 3);
 norm_approx_gradient_mav = zeros(time_horizon, size(Bd_concat,2), 3);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% power approx
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+pow_func = @(x) 4./(9*x.^2);
+[pow_func_m, pow_func_c] = function_affine(0, 1e-2, 200, sqrt(8/3), pow_func, 1e-3, sqrt(8/3));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % solve the problem
@@ -111,7 +118,7 @@ while iter <= iter_max
                     index = (i-1)*(3-1-i/2) + j-1;
                     
                     for k = 1:time_horizon
-                        hat_lam * norm( chol(blkdiag(8*var_mat_A(:,:,k), var_norm_add(k)))* [S * (x_mean_our_method(4*(k-1)+[1:4], i) - x_mean_our_method(4*(k-1)+[1:4],j)); 1] ) - ...
+                        hat_lam * norm( chol_holder_k(:,:,k) * [(x_mean_our_method(4*(k-1)+[1:2], i) - x_mean_our_method(4*(k-1)+[1:2],j)); 1] ) - ...
                             norm_approx_uav(k,index) - norm_approx_gradient_uav(k,:,index) * [U(:,i) - U_p(:,i);U(:,j) - U_p(:,j)] - ...
                             lambda_uav(k,index) + r^2 <= 0;
                     end
@@ -124,7 +131,7 @@ while iter <= iter_max
             vec(lambda_mav) >= 0;
             for i = 1:3          
                 for k = 1:time_horizon
-                    hat_lam * norm( chol(blkdiag(8*var_mat_A(:,:,k), var_norm_add(k)))* [S * (x_mean_our_method(4*(k-1)+[1:4], i) - x_mav_mean(4*(k-1)+[1:4])); 1] ) - ...
+                    hat_lam * norm( chol_holder_k(:,:,k) * [(x_mean_our_method(4*(k-1)+[1:2], i) - x_mav_mean(4*(k-1)+[1:2])); 1] ) - ...
                         norm_approx_mav(k,index) - norm_approx_gradient_mav(k,:,index) * (U(:,i) - U_p(:,i)) - ...
                         lambda_mav(k,index) + r^2 <= 0;
                 end
@@ -143,7 +150,7 @@ while iter <= iter_max
             
             for i = 1:(n_lin_state)
                 for j = 1:3
-                    lambda_temp(i,j) >= 4/9*pow_p(lambda(i,j),-2);
+                    lambda_temp(i,j) >= pow_func_m .* lambda(i,j) + pow_func_c;
                 end
             end
             sum(vec(lambda_temp)) <= alpha_t;

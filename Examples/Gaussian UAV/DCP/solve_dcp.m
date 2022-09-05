@@ -11,7 +11,7 @@ large_constant = 5000;
 
 coll_avoid_n = 16;
 Avoid_A = zeros(coll_avoid_n,2);
-for i = 0:coll_avoid_n
+for i = 0:(coll_avoid_n-1)
     Avoid_A(i+1,:) = [cos(2*i*pi/coll_avoid_n), sin(2*i*pi/coll_avoid_n)];
 end
 Avoid_b = r * ones(coll_avoid_n,1);

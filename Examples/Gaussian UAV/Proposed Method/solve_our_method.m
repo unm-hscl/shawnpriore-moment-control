@@ -46,7 +46,6 @@ norm_approx_gradient_mav = zeros(time_horizon, size(Bd_concat,2), 3);
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % power approx
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-x_hold = linspace(sqrt(8/3),100,10000); 
 pow_func = @(x) 4./(9*x.^2);
 [pow_func_m, pow_func_c] = quantile_affine(0, 1e-2, 200, sqrt(8/3), pow_func, 1e-3, sqrt(8/3));
 

@@ -20,7 +20,7 @@ F_xy = [1,2,3,4];
 fig = figure();
 fig.WindowState = 'maximized';
 
-subplot(5,20,[1:20]);
+subplot(7,20,[1:20]);
 hold on 
 
 plot(nan, nan, 'Color', colors(4,:), 'Marker', plot_symbols(4));
@@ -52,13 +52,13 @@ axis([0 0.1 0 0.1]);
 axis off
 hold off
 
-subplot(5,20,[21, 41]);
+subplot(7,20,[21, 41]);
 
-title('Proposed Method', 'position',[0 0.5], 'FontSize', 10)
+title('Proposed', 'position',[0 0.5], 'FontSize', 10)
 set(get(gca,'Title'),'Rotation',90)
 axis off
 
-subplot(5,20,[22:25, 42:45]);
+subplot(7,20,[22:25, 42:45]);
 hold on
 
 patch('Faces',F_xy,'Vertices', Polyhedron(target_set_a.A([1;2;5;6],1:2), target_set_a.b([1;2;5;6])).V,...
@@ -84,11 +84,12 @@ axis([-150 50 -100 100])
 
 ax = gca; 
 ax.FontSize = 8; 
+set(gca,'xtick',[])
 
 axis equal
 hold off
 
-subplot(5,20,[27:40, 47:60]);
+subplot(7,20,[27:40, 47:60]);
 hold on
 
 patch('Faces',F_xy,'Vertices', Polyhedron(target_set_a.A([1;2;5;6],1:2), target_set_a.b([1;2;5;6])).V,...
@@ -113,17 +114,18 @@ axis([-300 inf -150 150])
 
 ax = gca; 
 ax.FontSize = 8; 
+set(gca,'xtick',[])
 
 hold off
 
-subplot(5,20,[61, 81]);
+subplot(7,20,[61, 81]);
 
 title('Particle Control', 'position',[0 0.5], 'FontSize', 10)
 set(get(gca,'Title'),'Rotation',90)
 axis off
 
 
-subplot(5,20,[62:65, 82:85]);
+subplot(7,20,[62:65, 82:85]);
 hold on
 
 patch('Faces',F_xy,'Vertices', Polyhedron(target_set_a.A([1;2;5;6],1:2), target_set_a.b([1;2;5;6])).V,...
@@ -156,7 +158,7 @@ ax.FontSize = 8;
 
 hold off
 
-subplot(5,20,[67:80, 87:100]);
+subplot(7,20,[67:80, 87:100]);
 hold on
 
 patch('Faces',F_xy,'Vertices', Polyhedron(target_set_a.A([1;2;5;6],1:2), target_set_a.b([1;2;5;6])).V,...
