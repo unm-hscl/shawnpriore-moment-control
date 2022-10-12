@@ -1,4 +1,4 @@
-function [invcdf_m, invcdf_c] = quantile_approx(invert, by, p_to, p_from, f, max_overapprox, linearize_from)
+function [invcdf_m, invcdf_c] = function_affine(invert, by, p_to, p_from, f, max_overapprox, linearize_from)
     p = p_from:by:p_to;
     k = size(p, 2);
     x = f(p);

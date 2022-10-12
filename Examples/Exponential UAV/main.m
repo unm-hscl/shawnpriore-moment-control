@@ -15,7 +15,7 @@ addpath(genpath(pwd));
 system_setup;
 
 % output
-quiet = 0;
+quiet = 1;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%

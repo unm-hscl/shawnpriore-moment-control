@@ -7,7 +7,7 @@
 % parameters
 % big M arbitrary constant
 large_constant = 5000;
-N = 10;
+N = 16;
 
 % polytoupe defining ||x_i|| = r
 coll_avoid_n = 4;
@@ -18,10 +18,22 @@ end
 Avoid_b = r * ones(coll_avoid_n,1);
 
 % randomly generate the disturbance vector from the multivariate t.
-W_uav = zeros([size(sigma_concat,1), N, 3]);
+rng(100)
+W_uav_temp = zeros([size(sigma_concat,1), N*10, 3]);
 for i = 1:3
-    W_uav(:,:,i) = exprnd(repmat(mu_concat,1,N));
+    W_uav_temp(:,:,i) = exprnd(repmat(mu_concat,1,N*10));
 end
+weights = zeros(N*10,1);
+for i = 1:N*10
+    weights(i) = sum([norm(W_uav_temp(:,i,1)), norm(W_uav_temp(:,i,2)), norm(W_uav_temp(:,i,3))])^2;
+end
+weights = weights./sum(weights);
+[~, big_i] = maxk(weights,N/2);
+[~, small_i] = mink(weights,N/2);
+W_uav = zeros([size(sigma_concat,1), N, 3]);
+W_uav(:,1:N/2,:) = W_uav_temp(:,big_i,:);
+W_uav(:,(N/2+1):N,:) = W_uav_temp(:,small_i,:);
+
 
 W_mav =  exprnd(repmat(mu_concat,1,N));
 
@@ -31,7 +43,7 @@ W_mav =  exprnd(repmat(mu_concat,1,N));
 % time horizon T.
 
 tic;
-cvx_begin quiet
+cvx_begin 
     variable U_pc(2 * time_horizon,3);
     variable x_mean_pc(4 * time_horizon, 3);
     % incorporate disturbances 

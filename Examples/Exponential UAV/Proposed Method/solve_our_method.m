@@ -2,7 +2,7 @@
 % disturbance set up
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 hat_alpha = alpha_r/24;
-hat_lam = 2/(3*sqrt(hat_alpha));
+hat_lam = sqrt((4-9*hat_alpha)/(9*hat_alpha));
 
 scaled_sigma_vec = sqrt(diag(target_set_A * Wd_concat(end-3:end,:) * sigma_concat * Wd_concat(end-3:end,:)' * target_set_A'));
 
@@ -44,8 +44,8 @@ norm_approx_gradient_mav = zeros(time_horizon, size(Bd_concat,2), 3);
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % power approx
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-pow_func = @(x) 4./(9*x.^2);
-[pow_func_m, pow_func_c] = function_affine(0, 1e-2, 200, sqrt(8/3), pow_func, 1e-3, sqrt(8/3));
+pow_func = @(x) 4./(9*(x.^2+1));
+[pow_func_m, pow_func_c] = function_affine(0, 1e-2, 200, sqrt(5/3), pow_func, 1e-3, sqrt(5/3));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % solve the problem
@@ -141,7 +141,7 @@ while iter <= iter_max
             % terminal state constraint
             %----------------------------
             
-            vec(lambda) >= sqrt(8/3);
+            vec(lambda) >= sqrt(5/3);
             for i = 1:3
                 
                 % mean in shrunk target set

@@ -69,7 +69,7 @@ input_space_A = kron(eye(time_horizon),input_space.A);
 input_space_b = repmat(input_space.b, time_horizon,1);
 
 % min distance
-r = 35;
+r = 40;
 
 % matrix to extract position
 S = [eye(2), zeros(2)];
