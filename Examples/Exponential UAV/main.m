@@ -15,25 +15,39 @@ addpath(genpath(pwd));
 system_setup;
 
 % output
-quiet = 1;
+quiet = 0;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % solve with our method
 %%%%%%%%%%%%%%%%%%%%%%%%%%
+method='Proposed';
 solve_our_method; 
 if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
     return
 end
 
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-% solve with pc
+% solve with cantelli
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-solve_pc; 
+method='Cantelli';
+solve_our_method; 
 if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
     return
 end
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%
+% % solve with Chebyshev
+% %%%%%%%%%%%%%%%%%%%%%%%%%%
+% method='Chebyshev';
+% solve_our_method; 
+% if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
+%     return
+% end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % make plots

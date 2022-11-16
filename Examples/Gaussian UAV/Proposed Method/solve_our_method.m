@@ -47,7 +47,7 @@ norm_approx_gradient_mav = zeros(time_horizon, size(Bd_concat,2), 3);
 % power approx
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 pow_func = @(x) 4./(9*(x.^2+1));
-[pow_func_m, pow_func_c] = quantile_affine(0, 1e-2, 200, sqrt(5/3), pow_func, 1e-3, sqrt(5/3));
+[pow_func_m, pow_func_c] = quantile_affine(0, 1e-3, 200, sqrt(5/3), pow_func, 1e-3, sqrt(5/3));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,8 +135,8 @@ while iter <= iter_max
             for i = 1:3          
                 for k = 1:time_horizon
                     hat_lam * norm( chol_holder_k(:,:,k) * [(x_mean_our_method(4*(k-1)+[1:2], i) - x_mav_mean(4*(k-1)+[1:2])); 1] ) - ...
-                        norm_approx_mav(k,index) - norm_approx_gradient_mav(k,:,index) * (U(:,i) - U_p(:,i)) - ...
-                        lambda_mav(k,index) + r^2 <= 0;
+                        norm_approx_mav(k,i) - norm_approx_gradient_mav(k,:,i) * (U(:,i) - U_p(:,i)) - ...
+                        lambda_mav(k,i) + r^2 <= 0;
                 end
             end
             
@@ -159,7 +159,7 @@ while iter <= iter_max
             sum(vec(lambda_temp)) <= alpha_t;
             
     cvx_end
-
+    
     % update Costs
     input_cost_our_method(iter+1) = quad_input_cost;
     lambda_sum_our_method(iter+1) = sum_lambda;

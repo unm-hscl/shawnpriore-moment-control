@@ -9,7 +9,7 @@
 large_constant = 5000;
 
 
-coll_avoid_n = 16;
+coll_avoid_n = 8;
 Avoid_A = zeros(coll_avoid_n,2);
 for i = 0:(coll_avoid_n-1)
     Avoid_A(i+1,:) = [cos(2*i*pi/coll_avoid_n), sin(2*i*pi/coll_avoid_n)];
@@ -29,7 +29,7 @@ avoid_quantile = norminv(1-mav_split_alpha);
 % time horizon T.
 
 tic;
-cvx_begin quiet
+cvx_begin 
     variable U_dcp(2 * time_horizon,3);
     variable x_mean_dcp(4 * time_horizon, 3);
 

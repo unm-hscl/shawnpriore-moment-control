@@ -42,7 +42,7 @@ end
 plots=get(gca, 'Children');
 
 legend([plots(3), plots(2), plots(1), plots(6), plots(5), plots(4)], ...
-     {'UAV 1', 'UAV 2', 'UAV 3', 'MAV', 'Target Set', 'Initial Location' },...
+     {'AV 1', 'AV 2', 'AV 3', 'RV', 'Target Set', 'Initial Location' },...
     'Orientation','horizontal', ...
     'Location', 'south', ...
     'NumColumns', 6, ...
@@ -81,7 +81,7 @@ plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_
 
 
 ylabel('y (in meters)')
-axis([-150 50 -100 100])
+axis([-50 150 -100 100])
 
 ax = gca; 
 ax.FontSize = 8; 
@@ -149,7 +149,7 @@ plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_
 
 ylabel('y (in meters)')
 
-axis([-150 50 -100 100])
+axis([-50 150 -100 100])
 set(gca,'xtick',[])
 
 
@@ -174,7 +174,7 @@ patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_
     'FaceAlpha', 0.1); 
 
 for i = 1:size(x_mean_our_method,2)
-   plot([x_0(1,i); x_mean_quantile(1:4:end,i)], [x_0(2,i); x_mean_quantile(2:4:end,i)], 'Color', colors(i, :), 'Marker', plot_symbols(i), 'LineStyle', ':');
+   plot([x_0(1,i); x_mean_quantile(1:4:end,i)], [x_0(2,i); x_mean_quantile(2:4:end,i)], 'Color', colors(i, :), 'Marker', plot_symbols(i));
 end
 plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
 plot([x_0_mav(1); x_mav_mean(1:4:end)], [x_0_mav(2); x_mav_mean(2:4:end)], 'Color', colors(4,:), 'Marker', plot_symbols(4));
@@ -221,7 +221,7 @@ plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_
 xlabel('x (in meters)')
 ylabel('y (in meters)')
 
-axis([-150 50 -100 100])
+axis([-50 150 -100 100])
 
 axis equal
 
@@ -244,7 +244,7 @@ patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_
     'FaceAlpha', 0.1); 
 
 for i = 1:size(x_mean_our_method,2)
-   plot([x_0(1,i); x_mean_dcp(1:4:end,i)], [x_0(2,i); x_mean_dcp(2:4:end,i)], 'Color', colors(i, :), 'Marker', plot_symbols(i), 'LineStyle', ':');
+   plot([x_0(1,i); x_mean_dcp(1:4:end,i)], [x_0(2,i); x_mean_dcp(2:4:end,i)], 'Color', colors(i, :), 'Marker', plot_symbols(i));
 end
 plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
 plot([x_0_mav(1); x_mav_mean(1:4:end)], [x_0_mav(2); x_mav_mean(2:4:end)], 'Color', colors(4,:), 'Marker', plot_symbols(4));

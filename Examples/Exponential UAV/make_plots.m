@@ -41,7 +41,7 @@ end
 plots=get(gca, 'Children');
 
 legend([plots(3), plots(2), plots(1), plots(6), plots(5), plots(4)], ...
-     {'UAV 1', 'UAV 2', 'UAV 3', 'MAV', 'Target Set', 'Initial Location' },...
+     {'AV 1', 'AV 2', 'AV 3', 'RV', 'Target Set', 'Initial Location' },...
     'Orientation','horizontal', ...
     'Location', 'south', ...
     'NumColumns', 6, ...
@@ -72,7 +72,7 @@ patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_
     'FaceAlpha', 0.1); 
 
 for i = 1:size(x_mean_our_method,2)
-   plot(x_mean_our_method(end-3,i), x_mean_our_method(end-2,i), 'Color', colors(i, :), 'Marker', plot_symbols(i));
+   plot(x_mean_proposed(end-3,i), x_mean_proposed(end-2,i), 'Color', colors(i, :), 'Marker', plot_symbols(i));
 end
 plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
 
@@ -80,7 +80,7 @@ plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_
 
 
 ylabel('y (in meters)')
-axis([-150 50 -100 100])
+axis([ -50 150 -100 100])
 
 ax = gca; 
 ax.FontSize = 8; 
@@ -103,7 +103,7 @@ patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_
     'FaceAlpha', 0.1); 
 
 for i = 1:size(x_mean_our_method,2)
-   plot([x_0(1,i); x_mean_our_method(1:4:end,i)], [x_0(2,i); x_mean_our_method(2:4:end,i)], 'Color', colors(i, :), 'Marker', plot_symbols(i));
+   plot([x_0(1,i); x_mean_proposed(1:4:end,i)], [x_0(2,i); x_mean_proposed(2:4:end,i)], 'Color', colors(i, :), 'Marker', plot_symbols(i));
 end
 plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
 
@@ -120,7 +120,7 @@ hold off
 
 subplot(7,20,[61, 81]);
 
-title('Particle Control', 'position',[0 0.5], 'FontSize', 10)
+title('Cantelli', 'position',[0 0.5], 'FontSize', 10)
 set(get(gca,'Title'),'Rotation',90)
 axis off
 
@@ -139,17 +139,16 @@ patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_
     'FaceAlpha', 0.1); 
 
 for i = 1:size(x_mean_our_method,2)
-   plot(x_mean_pc(end-3,i), x_mean_pc(end-2,i), 'Color', colors(i, :), 'Marker', plot_symbols(i));
+   plot(x_mean_cantelli(end-3,i), x_mean_cantelli(end-2,i), 'Color', colors(i, :), 'Marker', plot_symbols(i));
 end
 plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
 
 plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_symbols(4));
 
-
 xlabel('x (in meters)')
 ylabel('y (in meters)')
 
-axis([-150 50 -100 100])
+axis([ -50 150 -100 100])
 
 axis equal
 
@@ -172,18 +171,84 @@ patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_
     'FaceAlpha', 0.1); 
 
 for i = 1:size(x_mean_our_method,2)
-   plot([x_0(1,i); x_mean_pc(1:4:end,i)], [x_0(2,i); x_mean_pc(2:4:end,i)], 'Color', colors(i, :), 'Marker', plot_symbols(i), 'LineStyle', ':');
+   plot([x_0(1,i); x_mean_cantelli(1:4:end,i)], [x_0(2,i); x_mean_cantelli(2:4:end,i)], 'Color', colors(i, :), 'Marker', plot_symbols(i));
 end
 plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
 plot([x_0_mav(1); x_mav_mean(1:4:end)], [x_0_mav(2); x_mav_mean(2:4:end)], 'Color', colors(4,:), 'Marker', plot_symbols(4));
 
 
 xlabel('x (in meters)')
-
 ax = gca; 
 ax.FontSize = 8; 
 
 axis([-300 inf -150 150])
 
-
 hold off
+
+% subplot(7,20,[101, 121]);
+% 
+% title('Chebyshev', 'position',[0 0.5], 'FontSize', 10)
+% set(get(gca,'Title'),'Rotation',90)
+% axis off
+% 
+% 
+% subplot(7,20,[102:105, 122:125]);
+% hold on
+% 
+% patch('Faces',F_xy,'Vertices', Polyhedron(target_set_a.A([1;2;5;6],1:2), target_set_a.b([1;2;5;6])).V,...
+%     'FaceColor', colors(1,:), ...
+%     'FaceAlpha', 0.1); 
+% patch('Faces',F_xy,'Vertices', Polyhedron(target_set_b.A([1;2;5;6],1:2), target_set_b.b([1;2;5;6])).V,...
+%     'FaceColor', colors(2,:), ...
+%     'FaceAlpha', 0.1); 
+% patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_set_c.b([1;2;5;6])).V,...
+%     'FaceColor', colors(3,:), ...
+%     'FaceAlpha', 0.1); 
+% 
+% for i = 1:size(x_mean_our_method,2)
+%    plot(x_mean_chebyshev(end-3,i), x_mean_chebyshev(end-2,i), 'Color', colors(i, :), 'Marker', plot_symbols(i));
+% end
+% plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
+% 
+% plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_symbols(4));
+% 
+% 
+% xlabel('x (in meters)')
+% ylabel('y (in meters)')
+% 
+% axis([ -50 150 -100 100])
+% 
+% axis equal
+% 
+% ax = gca; 
+% ax.FontSize = 8; 
+% 
+% hold off
+% subplot(7,20,[107:120, 127:140]);
+% hold on
+% 
+% patch('Faces',F_xy,'Vertices', Polyhedron(target_set_a.A([1;2;5;6],1:2), target_set_a.b([1;2;5;6])).V,...
+%     'FaceColor', colors(1,:), ...
+%     'FaceAlpha', 0.1); 
+% patch('Faces',F_xy,'Vertices', Polyhedron(target_set_b.A([1;2;5;6],1:2), target_set_b.b([1;2;5;6])).V,...
+%     'FaceColor', colors(2,:), ...
+%     'FaceAlpha', 0.1); 
+% patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_set_c.b([1;2;5;6])).V,...
+%     'FaceColor', colors(3,:), ...
+%     'FaceAlpha', 0.1); 
+% 
+% for i = 1:size(x_mean_our_method,2)
+%    plot([x_0(1,i); x_mean_chebyshev(1:4:end,i)], [x_0(2,i); x_mean_chebyshev(2:4:end,i)], 'Color', colors(i, :), 'Marker', plot_symbols(i));
+% end
+% plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
+% plot([x_0_mav(1); x_mav_mean(1:4:end)], [x_0_mav(2); x_mav_mean(2:4:end)], 'Color', colors(4,:), 'Marker', plot_symbols(4));
+% 
+% 
+% xlabel('x (in meters)')
+% 
+% ax = gca; 
+% ax.FontSize = 8; 
+% 
+% axis([-300 inf -150 150])
+% 
+% hold off

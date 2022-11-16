@@ -1,8 +1,26 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-% disturbance set up
+% method setup
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 hat_alpha = alpha_r/24;
-hat_lam = sqrt((4-9*hat_alpha)/(9*hat_alpha));
+
+if strcmpi(method, 'Proposed')
+    hat_lam = sqrt(4/(9*hat_alpha)-1);
+    pow_func = @(x) 4./(9*(x.^2+1));
+elseif strcmpi(method, 'Cantelli')
+    hat_lam = sqrt(1/hat_alpha -1);
+    pow_func = @(x) 1./(x.^2+1);
+elseif strcmpi(method, 'Chebyshev')   
+    hat_lam = sqrt(1/hat_alpha);
+    pow_func = @(x) 1./(x.^2);
+else
+    return
+end
+[pow_func_m, pow_func_c] = function_affine(0, 1e-3, 2000, sqrt(5/3), pow_func, 1e-3, sqrt(5/3));
+
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% disturbance set up
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 scaled_sigma_vec = sqrt(diag(target_set_A * Wd_concat(end-3:end,:) * sigma_concat * Wd_concat(end-3:end,:)' * target_set_A'));
 
@@ -16,8 +34,10 @@ for i=1:time_horizon
     
     var_mat_A(:,:,i) = S * D_k * sigma_concat * D_k' * S';
     
+    vec_a = diag(D_k' * S' * S * D_k);
+    
     expect_norm_add(i) = 2 * trace( var_mat_A(:,:,i) );
-    var_norm_add(i) = 16 * trace( var_mat_A(:,:,i)^2 ) + 4 * diag(var_mat_A(:,:,i))'*diag(var_mat_A(:,:,i));
+    var_norm_add(i) = 8 * trace( var_mat_A(:,:,i)^2 ) + 12 * vec_a' * sigma_concat^2 * vec_a;
     chol_holder_k(:,:,i) = chol(blkdiag(8*var_mat_A(:,:,i), var_norm_add(i)));
 end
 
@@ -30,7 +50,6 @@ lambda_sum_our_method = [1e10; zeros(iter_max,1)];
 total_cost_our_method = [1e20; zeros(iter_max,1)];
 
 % initial input guess
-U_p = zeros(size(Bd_concat,2), 3);
 x_mean_our_method = x_mean_no_input + Bd_concat*U_p;
 
 
@@ -40,12 +59,6 @@ norm_approx_gradient_uav = zeros(time_horizon, 2*size(Bd_concat,2), 3);
 
 norm_approx_mav = zeros(time_horizon, 3);
 norm_approx_gradient_mav = zeros(time_horizon, size(Bd_concat,2), 3);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-% power approx
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-pow_func = @(x) 4./(9*(x.^2+1));
-[pow_func_m, pow_func_c] = function_affine(0, 1e-2, 200, sqrt(5/3), pow_func, 1e-3, sqrt(5/3));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % solve the problem
@@ -112,14 +125,13 @@ while iter <= iter_max
             % colission avoidance constraint (intervehicle)
             %----------------------------
             vec(lambda_uav) >= 0;
-
             for i = 1:(3-1)
                 for j = (i+1):3
                     index = (i-1)*(3-1-i/2) + j-1;
                     
                     for k = 1:time_horizon
                         hat_lam * norm( chol_holder_k(:,:,k) * [(x_mean_our_method(4*(k-1)+[1:2], i) - x_mean_our_method(4*(k-1)+[1:2],j)); 1] ) - ...
-                            norm_approx_uav(k,index) - norm_approx_gradient_uav(k,:,index) * [U(:,i) - U_p(:,i);U(:,j) - U_p(:,j)] - ...
+                            norm_approx_uav(k,index) - norm_approx_gradient_uav(k,:,index) * [U(:,i) - U_p(:,i); U(:,j) - U_p(:,j)] - ...
                             lambda_uav(k,index) + r^2 <= 0;
                     end
                 end
@@ -132,8 +144,8 @@ while iter <= iter_max
             for i = 1:3          
                 for k = 1:time_horizon
                     hat_lam * norm( chol_holder_k(:,:,k) * [(x_mean_our_method(4*(k-1)+[1:2], i) - x_mav_mean(4*(k-1)+[1:2])); 1] ) - ...
-                        norm_approx_mav(k,index) - norm_approx_gradient_mav(k,:,index) * (U(:,i) - U_p(:,i)) - ...
-                        lambda_mav(k,index) + r^2 <= 0;
+                        norm_approx_mav(k,i) - norm_approx_gradient_mav(k,:,i) * (U(:,i) - U_p(:,i)) - ...
+                        lambda_mav(k,i) + r^2 <= 0;
                 end
             end
             
@@ -151,6 +163,7 @@ while iter <= iter_max
             for i = 1:(n_lin_state)
                 for j = 1:3
                     lambda_temp(i,j) >= pow_func_m .* lambda(i,j) + pow_func_c;
+                    lambda_temp(i,j) >= 0;
                 end
             end
             sum(vec(lambda_temp)) <= alpha_t;
@@ -203,6 +216,7 @@ iter = min(iter, iter_max);
 % print some useful information
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fprintf('\n%s',method);
 fprintf('\n%s in ', cvx_status);
 fprintf('%i itterations \n', iter);
 fprintf('Computation time (sec): %f \n', total_time_our_method);
@@ -212,6 +226,14 @@ fprintf('Input Cost: %f \n', input_cost_our_method(iter+1));
 
 if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
     return
+end
+
+if strcmpi(method, 'Proposed')
+    x_mean_proposed = x_mean_our_method; 
+elseif strcmpi(method, 'Cantelli')
+    x_mean_cantelli = x_mean_our_method; 
+elseif strcmpi(method, 'Chebyshev')   
+    x_mean_chebyshev = x_mean_our_method; 
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
