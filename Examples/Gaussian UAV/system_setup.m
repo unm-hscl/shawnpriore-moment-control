@@ -1,18 +1,26 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % system set up
 %%%%%%%%%%%%%%%%%%%%%%%%%%
+time_horizon                 = 8; 
+sampling_period              = 60;                                              % sec
+orbital_radius               = (35622 + 6378.1) * 1000;                         % m
+gravitational_constant       = 6.673e-11;                                       % m^3 kg^-1 sec^-2
+celestial_mass               = 5.9472e24;                                       % kg
+gravitational_body           = gravitational_constant * celestial_mass;         % m^3 sec^-2
+orbit_ang_vel                = sqrt(gravitational_body / orbital_radius^3);     % rad sec^-2
 
-sampling_period     = 10; %sec
-time_horizon        = 8; 
+% Continuous-time LTI CWH unforced dynamics e^{At}
+e_power_At = @(t) [ 
+    4 - 3 * cos(orbit_ang_vel * t), 0, (1/orbit_ang_vel) * sin(orbit_ang_vel * t), (2/orbit_ang_vel) * (1 - cos(orbit_ang_vel * t)); 
+    6 * (sin(orbit_ang_vel * t) - orbit_ang_vel * t), 1, -(2/orbit_ang_vel) * (1 - cos(orbit_ang_vel * t)), (1/orbit_ang_vel) * (4*sin(orbit_ang_vel * t) - 3*orbit_ang_vel * t); 
+    3 * orbit_ang_vel * sin(orbit_ang_vel * t), 0, cos(orbit_ang_vel * t), 2 * sin(orbit_ang_vel * t); 
+    -6 * orbit_ang_vel * (1 - cos(orbit_ang_vel * t)), 0, -2 * sin(orbit_ang_vel * t), 4 * cos(orbit_ang_vel * t) - 3;
+    ];
 
-A = [zeros(2), eye(2); zeros(2), zeros(2)];
-     
-B = [zeros(2); eye(2)];
-
-sys_C = ss(A,B,zeros(1,4),0);
-sys_D = c2d(sys_C, sampling_period);
-Ad = sys_D.A;
-Bd = sys_D.B; 
+% Discrete-time system is Phi(T_s) for sampling time T_s since the system is time-invariant
+Ad = e_power_At(sampling_period);
+% Impulse control
+Bd = Ad*[zeros(2); eye(2)];
  
 Ad_concat = zeros(size(Ad, 1)*time_horizon, size(Ad, 2));
 Bd_concat = zeros(size(Bd, 1)*time_horizon, size(Bd, 2)*time_horizon);
@@ -32,24 +40,29 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % mav init conditions
-x_0_mav = [90000; 10*time_horizon; -9000/time_horizon; -1];
+x_0_mav = zeros(4,1);
 x_mav_mean = Ad_concat * x_0_mav;
 
+x_0_a = [90;  -5;  0.1; 0; 0; 0] ; % satellite A
+x_0_b = [95;   5; -0.1; 0; 0; 0] ; % satellite B
+x_0_c = [100; -5; -0.1; 0; 0; 0] ; % satellite C
+
 % uav init conditions
-x_0 = [120000, 115000, 117500; 
-            0,    100,   -150;
-         -200,   -200,   -200; 
-            0,      0,      0];       
+x_0 = [ 90,  95,  100; 
+        -5,   5,   -5;
+         0,   0,    0; 
+         0,   0,    0];       
 
 x_mean_no_input = Ad_concat * x_0;
 
 % target sets
-target_set_a = Polyhedron('lb', [ 65; -15; -2100; -10], ...
-                          'ub', [ 95;  15; -2000;  10]);
-target_set_b = Polyhedron('lb', [ 30; -60; -2100; -10], ...
-                          'ub', [ 60; -30; -2000;  10]);
-target_set_c = Polyhedron('lb', [ 30;  30; -2100; -10], ...
-                          'ub', [ 60;  60; -2000;  10]);
+target_set_c = Polyhedron('lb', [-7.5;     5; -0.1; -0.1], ... 
+                          'ub', [-2.5;    10;  0.1;  0.1]);   
+target_set_b = Polyhedron('lb', [-7.5;   -10; -0.1; -0.1], ... 
+                          'ub', [-2.5;    -5;  0.1;  0.1]);   
+target_set_a = Polyhedron('lb', [ 6.5;  -2.5; -0.1; -0.1], ... 
+                          'ub', [11.5;   2.5;  0.1;  0.1]);   
+
                       
 target_sets(1) = target_set_a;
 target_sets(2) = target_set_b;
@@ -61,7 +74,7 @@ target_set_B = [target_set_a.b, target_set_b.b, target_set_c.b];
 n_lin_state = size(target_set_A,1);
 
 % Input space
-u_max = 1000;
+u_max = 5;
 input_space = Polyhedron('lb', [-u_max; -u_max], ... 
                          'ub', [ u_max;  u_max]);                         
 
@@ -69,7 +82,7 @@ input_space_A = kron(eye(time_horizon),input_space.A);
 input_space_b = repmat(input_space.b, time_horizon,1);
 
 % min distance
-r = 30;
+r = 8;
 
 % matrix to extract position
 S = [eye(2), zeros(2)];
@@ -80,7 +93,7 @@ alpha_o = 0.15;
 alpha_r = 0.15;
 
 % disturbance covariance matrix
-sigma = diag([0.5, 0.5, 1e-4, 1e-4]);
+sigma = diag([1e-3, 1e-3, 1e-8, 1e-8]);
 sigma_concat = kron(eye(time_horizon),sigma);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,7 +108,7 @@ cvx_precision high
 iter_max = 50;
 
 % convergence perameters
-epsilon_dc = 1e-2; % convergence in cost
+epsilon_dc = 1e-4; % convergence in cost
 epsilon_lambda = 1e-8; % convergence of sum of slack variables to zero
 
 % cost of slack variable

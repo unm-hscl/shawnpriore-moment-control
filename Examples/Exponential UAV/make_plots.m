@@ -41,7 +41,7 @@ end
 plots=get(gca, 'Children');
 
 legend([plots(3), plots(2), plots(1), plots(6), plots(5), plots(4)], ...
-     {'AV 1', 'AV 2', 'AV 3', 'RV', 'Target Set', 'Initial Location' },...
+     {'Dep 1', 'Dep 2', 'Dep 3', 'Chief', 'Target Set', 'Initial Location' },...
     'Orientation','horizontal', ...
     'Location', 'south', ...
     'NumColumns', 6, ...
@@ -74,19 +74,18 @@ patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_
 for i = 1:size(x_mean_our_method,2)
    plot(x_mean_proposed(end-3,i), x_mean_proposed(end-2,i), 'Color', colors(i, :), 'Marker', plot_symbols(i));
 end
-plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
-
 plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_symbols(4));
 
 
 ylabel('y (in meters)')
-axis([ -50 150 -100 100])
 
 ax = gca; 
 ax.FontSize = 8; 
-set(gca,'xtick',[])
+%set(gca,'xtick',[])
 
+axis([-12 12 -12 12])
 axis equal
+
 hold off
 
 subplot(7,20,[27:40, 47:60]);
@@ -110,22 +109,23 @@ plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor
 plot([x_0_mav(1); x_mav_mean(1:4:end)], [x_0_mav(2); x_mav_mean(2:4:end)], 'Color', colors(4,:), 'Marker', plot_symbols(4));
 
 
-axis([-300 inf -150 150])
-
 ax = gca; 
 ax.FontSize = 8; 
-set(gca,'xtick',[])
+%set(gca,'xtick',[])
 
 hold off
 
-subplot(7,20,[61, 81]);
+
+
+
+subplot(7,20,[81, 101]);
 
 title('Cantelli', 'position',[0 0.5], 'FontSize', 10)
 set(get(gca,'Title'),'Rotation',90)
 axis off
 
 
-subplot(7,20,[62:65, 82:85]);
+subplot(7,20,[82:85, 102:105]);
 hold on
 
 patch('Faces',F_xy,'Vertices', Polyhedron(target_set_a.A([1;2;5;6],1:2), target_set_a.b([1;2;5;6])).V,...
@@ -141,15 +141,12 @@ patch('Faces',F_xy,'Vertices', Polyhedron(target_set_c.A([1;2;5;6],1:2), target_
 for i = 1:size(x_mean_our_method,2)
    plot(x_mean_cantelli(end-3,i), x_mean_cantelli(end-2,i), 'Color', colors(i, :), 'Marker', plot_symbols(i));
 end
-plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k', 'LineStyle', 'none','MarkerSize',10);
-
 plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_symbols(4));
 
 xlabel('x (in meters)')
 ylabel('y (in meters)')
 
-axis([ -50 150 -100 100])
-
+axis([-12 12 -12 12])
 axis equal
 
 ax = gca; 
@@ -157,7 +154,7 @@ ax.FontSize = 8;
 
 hold off
 
-subplot(7,20,[67:80, 87:100]);
+subplot(7,20,[87:100, 107:120]);
 hold on
 
 patch('Faces',F_xy,'Vertices', Polyhedron(target_set_a.A([1;2;5;6],1:2), target_set_a.b([1;2;5;6])).V,...
@@ -180,8 +177,6 @@ plot([x_0_mav(1); x_mav_mean(1:4:end)], [x_0_mav(2); x_mav_mean(2:4:end)], 'Colo
 xlabel('x (in meters)')
 ax = gca; 
 ax.FontSize = 8; 
-
-axis([-300 inf -150 150])
 
 hold off
 

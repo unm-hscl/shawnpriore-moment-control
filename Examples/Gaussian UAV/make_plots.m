@@ -42,7 +42,7 @@ end
 plots=get(gca, 'Children');
 
 legend([plots(3), plots(2), plots(1), plots(6), plots(5), plots(4)], ...
-     {'AV 1', 'AV 2', 'AV 3', 'RV', 'Target Set', 'Initial Location' },...
+     {'Dep 1', 'Dep 2', 'Dep 3', 'Chief', 'Target Set', 'Initial Location' },...
     'Orientation','horizontal', ...
     'Location', 'south', ...
     'NumColumns', 6, ...
@@ -81,7 +81,7 @@ plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_
 
 
 ylabel('y (in meters)')
-axis([-50 150 -100 100])
+axis([-12 12 -12 12])
 
 ax = gca; 
 ax.FontSize = 8; 
@@ -111,7 +111,6 @@ plot(x_0(1,:), x_0(2,:), 'Marker', 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor
 plot([x_0_mav(1); x_mav_mean(1:4:end)], [x_0_mav(2); x_mav_mean(2:4:end)], 'Color', colors(4,:), 'Marker', plot_symbols(4));
 
 
-axis([-300 inf -150 150])
 
 ax = gca; 
 ax.FontSize = 8; 
@@ -149,7 +148,7 @@ plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_
 
 ylabel('y (in meters)')
 
-axis([-50 150 -100 100])
+axis([-12 12 -12 12])
 set(gca,'xtick',[])
 
 
@@ -185,7 +184,6 @@ ax.FontSize = 8;
 set(gca,'xtick',[])
 
 
-axis([-300 inf -150 150])
 
 hold off
 
@@ -221,7 +219,7 @@ plot(x_mav_mean(end-3), x_mav_mean(end-2), 'Color', colors(4,:), 'Marker', plot_
 xlabel('x (in meters)')
 ylabel('y (in meters)')
 
-axis([-50 150 -100 100])
+axis([-12 12 -12 12])
 
 axis equal
 
@@ -253,7 +251,5 @@ xlabel('x (in meters)')
 
 ax = gca; 
 ax.FontSize = 8; 
-
-axis([-300 inf -150 150])
 
 hold off
