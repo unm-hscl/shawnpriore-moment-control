@@ -39,29 +39,22 @@ end
 % problem set up
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% mav init conditions
-x_0_mav = zeros(4,1);
-x_mav_mean = Ad_concat * x_0_mav;
-
-x_0_a = [90;  -5;  0.1; 0; 0; 0] ; % satellite A
-x_0_b = [95;   5; -0.1; 0; 0; 0] ; % satellite B
-x_0_c = [100; -5; -0.1; 0; 0; 0] ; % satellite C
-
 % uav init conditions
-x_0 = [ 90,  95,  100; 
-        -5,   5,   -5;
+x_0 = [ 90,  95,  98; 
+        -5,   5,   -7;
          0,   0,    0; 
          0,   0,    0];       
 
 x_mean_no_input = Ad_concat * x_0;
 
+vmax = 0.1;
 % target sets
-target_set_c = Polyhedron('lb', [-7.5;     5; -0.1; -0.1], ... 
-                          'ub', [-2.5;    10;  0.1;  0.1]);   
-target_set_b = Polyhedron('lb', [-7.5;   -10; -0.1; -0.1], ... 
-                          'ub', [-2.5;    -5;  0.1;  0.1]);   
-target_set_a = Polyhedron('lb', [ 6.5;  -2.5; -0.1; -0.1], ... 
-                          'ub', [11.5;   2.5;  0.1;  0.1]);   
+target_set_c = Polyhedron('lb', [-7.5;     5; -vmax; -vmax], ... 
+                          'ub', [-2.5;    10;  vmax;  vmax]);   
+target_set_b = Polyhedron('lb', [-7.5;   -10; -vmax; -vmax], ... 
+                          'ub', [-2.5;    -5;  vmax;  vmax]);   
+target_set_a = Polyhedron('lb', [ 6.5;  -2.5; -vmax; -vmax], ... 
+                          'ub', [11.5;   2.5;  vmax;  vmax]);   
 
                       
 target_sets(1) = target_set_a;
@@ -74,7 +67,7 @@ target_set_B = [target_set_a.b, target_set_b.b, target_set_c.b];
 n_lin_state = size(target_set_A,1);
 
 % Input space
-u_max = 5;
+u_max = 0.75;
 input_space = Polyhedron('lb', [-u_max; -u_max], ... 
                          'ub', [ u_max;  u_max]);                         
 
@@ -82,19 +75,19 @@ input_space_A = kron(eye(time_horizon),input_space.A);
 input_space_b = repmat(input_space.b, time_horizon,1);
 
 % min distance
-r = 8;
+r = 12;
 
 % matrix to extract position
 S = [eye(2), zeros(2)];
 
 % safety violation thresholds
-alpha_t = 0.15;
-alpha_o = 0.15;
-alpha_r = 0.15;
+alpha_t = 0.075;
+alpha_r = 0.075;
 
 % disturbance covariance matrix
-sigma = diag([1e-3, 1e-3, 1e-8, 1e-8]);
-sigma_concat = kron(eye(time_horizon),sigma);
+mu = [0.05, 0.05, 1e-4, 1e-4]';
+mu_concat = kron(ones(time_horizon,1),mu);
+sigma_concat = diag(diag(mu_concat*mu_concat'));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % misc set up
@@ -108,12 +101,12 @@ cvx_precision high
 iter_max = 50;
 
 % convergence perameters
-epsilon_dc = 1e-4; % convergence in cost
+epsilon_dc = 1e-6; % convergence in cost
 epsilon_lambda = 1e-8; % convergence of sum of slack variables to zero
 
 % cost of slack variable
 tau_max = 1e6;
-tau_mult = 5;
-tau = min(tau_max * ones(iter_max,1),  tau_mult.^(0:(iter_max-1))');
+tau_mult = 10;
+tau = min(tau_max * ones(iter_max,1),  tau_mult.^(1:(iter_max))');
 
 

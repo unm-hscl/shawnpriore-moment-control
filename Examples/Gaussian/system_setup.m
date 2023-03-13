@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % system set up
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-time_horizon                 = 8; 
+time_horizon                 = 5; 
 sampling_period              = 60;                                              % sec
 orbital_radius               = (35622 + 6378.1) * 1000;                         % m
 gravitational_constant       = 6.673e-11;                                       % m^3 kg^-1 sec^-2
@@ -39,63 +39,44 @@ end
 % problem set up
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% mav init conditions
-x_0_mav = zeros(4,1);
-x_mav_mean = Ad_concat * x_0_mav;
-
-x_0_a = [90;  -5;  0.1; 0; 0; 0] ; % satellite A
-x_0_b = [95;   5; -0.1; 0; 0; 0] ; % satellite B
-x_0_c = [100; -5; -0.1; 0; 0; 0] ; % satellite C
-
-% uav init conditions
-x_0 = [ 90,  95,  100; 
-        -5,   5,   -5;
-         0,   0,    0; 
-         0,   0,    0];       
+x_0 = [11;  -4; 0; 0] ; 
 
 x_mean_no_input = Ad_concat * x_0;
 
 % target sets
-target_set_c = Polyhedron('lb', [-7.5;     5; -0.1; -0.1], ... 
-                          'ub', [-2.5;    10;  0.1;  0.1]);   
-target_set_b = Polyhedron('lb', [-7.5;   -10; -0.1; -0.1], ... 
-                          'ub', [-2.5;    -5;  0.1;  0.1]);   
-target_set_a = Polyhedron('lb', [ 6.5;  -2.5; -0.1; -0.1], ... 
-                          'ub', [11.5;   2.5;  0.1;  0.1]);   
+% target set
+% format: x, y, z, x., y., z.
+G_k = [-1,  2,  0, 0;
+       -1, -2,  0, 0;
+        1,  0,  0, 0];
+h_k  = [0;0;10];
 
-                      
-target_sets(1) = target_set_a;
-target_sets(2) = target_set_b;
-target_sets(3) = target_set_c;                      
-                      
-target_set_A = target_set_a.A;
-target_set_B = [target_set_a.b, target_set_b.b, target_set_c.b];
+G_N = kron(eye(4), [1;-1]);
+h_N = [2; 0; 0.5*ones(2,1); 0.1 * ones(4,1)];
 
-n_lin_state = size(target_set_A,1);
+G = blkdiag( kron(eye(time_horizon-1), G_k), G_N);
+h = [kron(ones(time_horizon-1,1),h_k); h_N];
 
+target_set = Polyhedron('H', [G,h]);
+
+% get number of half space constraints                      
+n_lin_state = size(G,1);
+
+                     
 % Input space
-u_max = 5;
+u_max = 0.1;
 input_space = Polyhedron('lb', [-u_max; -u_max], ... 
                          'ub', [ u_max;  u_max]);                         
 
 input_space_A = kron(eye(time_horizon),input_space.A);
 input_space_b = repmat(input_space.b, time_horizon,1);
 
-% min distance
-r = 8;
-
-% matrix to extract position
-S = [eye(2), zeros(2)];
-
 % safety violation thresholds
-alpha_t = 0.15;
-alpha_o = 0.15;
-alpha_r = 0.15;
+alpha_t = 0.05;
 
 % disturbance covariance matrix
-mu = [0.05, 0.05, 1e-4, 1e-4]';
-mu_concat = kron(ones(time_horizon,1),mu);
-sigma_concat = diag(diag(mu_concat*mu_concat'));
+sigma = diag([1e-3, 1e-3, 1e-8, 1e-8]);
+sigma_concat = kron(eye(time_horizon),sigma);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % misc set up
@@ -104,18 +85,5 @@ sigma_concat = diag(diag(mu_concat*mu_concat'));
 % Set defaults for cvx
 cvx_solver gurobi
 cvx_precision high
-
-% iterations for our method and quantile
-iter_max = 50;
-
-% convergence perameters
-epsilon_dc = 1e-2; % convergence in cost
-epsilon_lambda = 1e-8; % convergence of sum of slack variables to zero
-
-% cost of slack variable
-tau_max = 1e6;
-tau_mult = 5;
-tau = min(tau_max * ones(iter_max,1),  tau_mult.^(1:(iter_max))');
-U_p = zeros(size(Bd_concat,2), 3);
 
 

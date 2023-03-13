@@ -35,12 +35,21 @@ if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-% solve with dcp
+% solve with scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-solve_dcp; 
+solve_scenario; 
 if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
     return
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% solve with pc
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+solve_pc; 
+if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
+    return
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % make plots

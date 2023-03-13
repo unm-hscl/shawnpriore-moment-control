@@ -6,16 +6,15 @@ hat_alpha = alpha_r/24;
 if strcmpi(method, 'Proposed')
     hat_lam = sqrt(4/(9*hat_alpha)-1);
     pow_func = @(x) 4./(9*(x.^2+1));
+    lb = sqrt(5/3);
 elseif strcmpi(method, 'Cantelli')
     hat_lam = sqrt(1/hat_alpha -1);
     pow_func = @(x) 1./(x.^2+1);
-elseif strcmpi(method, 'Chebyshev')   
-    hat_lam = sqrt(1/hat_alpha);
-    pow_func = @(x) 1./(x.^2);
+    lb = sqrt(1/3);
 else
     return
 end
-[pow_func_m, pow_func_c] = function_affine(0, 1e-3, 2000, sqrt(5/3), pow_func, 1e-3, sqrt(5/3));
+[pow_func_m, pow_func_c] = function_affine(0, 1e-3, 2000, lb, pow_func, 1e-3, lb);
 
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,15 +49,13 @@ lambda_sum_our_method = [1e10; zeros(iter_max,1)];
 total_cost_our_method = [1e20; zeros(iter_max,1)];
 
 % initial input guess
-x_mean_our_method = x_mean_no_input + Bd_concat*U_p;
+x_mean_our_method = x_mean_no_input;
+U_p = zeros(size(Bd_concat,2), 3);
 
 
 % holders
-norm_approx_uav = zeros(time_horizon, 3);
-norm_approx_gradient_uav = zeros(time_horizon, 2*size(Bd_concat,2), 3);
-
-norm_approx_mav = zeros(time_horizon, 3);
-norm_approx_gradient_mav = zeros(time_horizon, size(Bd_concat,2), 3);
+norm_approx_dep = zeros(time_horizon, 3);
+norm_approx_gradient_dep = zeros(time_horizon, 2*size(Bd_concat,2), 3);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % solve the problem
@@ -72,25 +69,17 @@ while iter <= iter_max
     for i = 1:2
         for j = (i+1):3
             index = (i-1)*(2-i/2) + j-1;
-            [norm_approx_uav(:,index), norm_approx_gradient_uav(:,:,index)] = ...
-                update_g_uav_our_method(x_mean_our_method(:,i), x_mean_our_method(:,j), S, Bd_concat, expect_norm_add, time_horizon);
+            [norm_approx_dep(:,index), norm_approx_gradient_dep(:,:,index)] = ...
+                update_g(x_mean_our_method(:,i), x_mean_our_method(:,j), S, Bd_concat, expect_norm_add, time_horizon);
         end
     end
-    
-    for i = 1:3
-        [norm_approx_mav(:,i), norm_approx_gradient_mav(:,:,i)] = ...
-            update_g_mav_our_method(x_mean_our_method(:,i), x_mav_mean, S, Bd_concat, expect_norm_add, time_horizon);
-    end
-    
+        
     cvx_begin quiet
         variable U(2 * time_horizon, 3);
         variable x_mean_our_method(4 * time_horizon, 3);
 
         % 2 vehicle collision avoid
-        variable lambda_uav(time_horizon, 3) nonnegative;
-
-        % collision avoid with MAV
-        variable lambda_mav(time_horizon, 3) nonnegative;
+        variable lambda_dep(time_horizon, 3) nonnegative;
         
         % targe set
         variable lambda(n_lin_state, 3);
@@ -105,7 +94,7 @@ while iter <= iter_max
             %----------------------------
             % cost variables
             %----------------------------
-            sum_lambda == sum(vec(lambda_uav)) + sum(vec(lambda_mav)); 
+            sum_lambda == sum(vec(lambda_dep)); 
                       
             quad_input_cost >=  vec(U)'*vec(U);
             
@@ -124,36 +113,24 @@ while iter <= iter_max
             %----------------------------
             % colission avoidance constraint (intervehicle)
             %----------------------------
-            vec(lambda_uav) >= 0;
+            vec(lambda_dep) >= 0;
             for i = 1:(3-1)
                 for j = (i+1):3
                     index = (i-1)*(3-1-i/2) + j-1;
                     
                     for k = 1:time_horizon
                         hat_lam * norm( chol_holder_k(:,:,k) * [(x_mean_our_method(4*(k-1)+[1:2], i) - x_mean_our_method(4*(k-1)+[1:2],j)); 1] ) - ...
-                            norm_approx_uav(k,index) - norm_approx_gradient_uav(k,:,index) * [U(:,i) - U_p(:,i); U(:,j) - U_p(:,j)] - ...
-                            lambda_uav(k,index) + r^2 <= 0;
+                            norm_approx_dep(k,index) - norm_approx_gradient_dep(k,:,index) * [U(:,i) - U_p(:,i); U(:,j) - U_p(:,j)] - ...
+                            lambda_dep(k,index) + r^2 <= 0;
                     end
                 end
             end
-            %----------------------------
-            % colission avoidance constraint (from chief)
-            %----------------------------
-    
-            vec(lambda_mav) >= 0;
-            for i = 1:3          
-                for k = 1:time_horizon
-                    hat_lam * norm( chol_holder_k(:,:,k) * [(x_mean_our_method(4*(k-1)+[1:2], i) - x_mav_mean(4*(k-1)+[1:2])); 1] ) - ...
-                        norm_approx_mav(k,i) - norm_approx_gradient_mav(k,:,i) * (U(:,i) - U_p(:,i)) - ...
-                        lambda_mav(k,i) + r^2 <= 0;
-                end
-            end
-            
+
             %----------------------------
             % terminal state constraint
             %----------------------------
             
-            vec(lambda) >= sqrt(5/3);
+            vec(lambda) >= lb;
             for i = 1:3
                 
                 % mean in shrunk target set
@@ -232,12 +209,10 @@ if strcmpi(method, 'Proposed')
     x_mean_proposed = x_mean_our_method; 
 elseif strcmpi(method, 'Cantelli')
     x_mean_cantelli = x_mean_our_method; 
-elseif strcmpi(method, 'Chebyshev')   
-    x_mean_chebyshev = x_mean_our_method; 
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % verify probabilities
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[P_target_our_method, P_mav_our_method, P_uav_our_method] = verify(x_mean_our_method, x_mav_mean, Wd_concat, mu_concat, time_horizon, target_sets, r, 10000)
+[P_target_our_method, P_dep_our_method] = verify(x_mean_our_method, Wd_concat, mu_concat, time_horizon, target_sets, r, 10000)

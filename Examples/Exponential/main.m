@@ -28,7 +28,6 @@ if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
 end
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % solve with cantelli
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,18 +38,9 @@ if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
 end
 
 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%
-% % solve with Chebyshev
-% %%%%%%%%%%%%%%%%%%%%%%%%%%
-% method='Chebyshev';
-% solve_our_method; 
-% if strcmpi(cvx_status, 'Failed') || strcmpi(cvx_status, 'Infeasible')
-%     return
-% end
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % make plots
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 make_plots;
+unimodal_verification;
